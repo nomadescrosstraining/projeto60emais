@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Área do Professor · Nômades Crosstraining</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <a class="topbar__brand" href="index.html">
+      <img src="assets/icon-mark-white.png" alt="">
+      <span>Nômades · Professor</span>
+    </a>
+    <a class="topbar__link" id="link-sair-professor" href="#" style="display:none">Sair</a>
+  </header>
+
+  <div class="page">
+
+    <!-- Carregando -->
+    <section id="secao-carregando" class="state-message">
+      <p>Carregando os dados da turma…</p>
+    </section>
+
+    <!-- Erro de carregamento -->
+    <section id="secao-erro" class="state-message" style="display:none">
+      <p id="erro-mensagem">Não foi possível carregar os dados.</p>
+      <button id="botao-tentar-de-novo" class="btn btn-primary" type="button">Tentar de novo</button>
+    </section>
+
+    <!-- Login -->
+    <section id="secao-login" style="display:none">
+      <div id="aviso-demo" class="field-hint" style="display:none; margin-bottom:14px;">
+        Modo demonstração — os dados abaixo são fictícios. Configure os links da planilha em <code>js/config.js</code> para ver os dados reais.
+      </div>
+
+      <div class="login-card">
+        <h1>Área do Professor</h1>
+        <p class="login-card__lead">Visão geral da turma: frequência e bioimpedância de todos os alunos ativos.</p>
+
+        <div id="erro-login" class="form-error" role="alert"></div>
+
+        <form id="formulario-login-professor" novalidate>
+          <div class="field">
+            <label for="input-senha-professor">Senha da equipe</label>
+            <input type="password" id="input-senha-professor" autocomplete="off" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Dashboard -->
+    <section id="secao-dashboard" style="display:none">
+
+      <div class="dash-header">
+        <p class="dash-header__eyebrow">Visão geral</p>
+        <h1>Turma · Projeto 60 É Mais</h1>
+        <p class="dash-header__updated" id="dash-atualizado"></p>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-card__valor" id="kpi-alunos">—</div>
+          <div class="kpi-card__label">Alunos ativos</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-card__valor" id="kpi-frequencia">—</div>
+          <div class="kpi-card__label">Frequência média</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-card__valor" id="kpi-imc">—</div>
+          <div class="kpi-card__label">IMC médio</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-card__valor" id="kpi-aguardando">—</div>
+          <div class="kpi-card__label">Aguardando 2ª avaliação</div>
+        </div>
+      </div>
+
+      <!-- Frequência da turma -->
+      <div class="card card--frequencia">
+        <h2>Frequência da turma</h2>
+        <p class="card__subtitle">Percentual de presença do grupo, mês a mês</p>
+        <div class="chart-wrap trend">
+          <canvas id="chart-freq-turma" aria-label="Evolução da frequência da turma por mês" role="img"></canvas>
+        </div>
+      </div>
+
+      <!-- Ranking de frequência -->
+      <div class="card card--frequencia">
+        <h2>Frequência por aluno</h2>
+        <p class="card__subtitle">Do menor para o maior percentual — ajuda a ver quem precisa de um incentivo</p>
+        <input type="search" id="busca-aluno" class="search-input" placeholder="Buscar aluno pelo nome…">
+        <div class="rank-table-wrap">
+          <table class="rank-table">
+            <thead>
+              <tr><th>Aluno</th><th class="num">Presenças</th><th class="num">Faltas</th><th class="num">%</th></tr>
+            </thead>
+            <tbody id="rank-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Bioimpedância da turma -->
+      <div class="card card--bio">
+        <h2>Bioimpedância da turma</h2>
+        <p class="card__subtitle">Médias e distribuição da última avaliação de cada aluno</p>
+
+        <div id="bio-turma-vazio" class="state-message" style="display:none; padding:10px 0;">
+          Ainda não há avaliações de bioimpedância registradas.
+        </div>
+
+        <div id="bio-turma-conteudo">
+          <div id="medias-turma-conteudo" style="margin-bottom:20px;"></div>
+
+          <div class="donut-pair" style="margin-bottom:10px;">
+            <figure>
+              <div class="chart-wrap"><canvas id="chart-imc-dist" aria-label="Distribuição de classificação de IMC" role="img"></canvas></div>
+              <figcaption>Classificação de IMC</figcaption>
+              <div class="donut-legend" id="legenda-imc"></div>
+            </figure>
+            <figure>
+              <div class="chart-wrap"><canvas id="chart-visceral-dist" aria-label="Distribuição de gordura visceral" role="img"></canvas></div>
+              <figcaption>Gordura visceral</figcaption>
+              <div class="donut-legend" id="legenda-visceral"></div>
+            </figure>
+          </div>
+
+          <div id="bio-evolucao-bloco" style="display:none; margin-top:20px;">
+            <p class="card__subtitle" style="margin-bottom:8px;">Evolução do peso médio da turma por rodada de avaliação</p>
+            <div class="chart-wrap trend">
+              <canvas id="chart-evolucao-turma" aria-label="Evolução do peso médio da turma" role="img"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <footer class="site-footer">
+    <img src="assets/icon-mark-ink.png" alt="">
+    Nômades Crosstraining · Projeto 60 É Mais
+  </footer>
+
+  <script src="js/csv.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/demo-data.js"></script>
+  <script src="js/shared.js"></script>
+  <script src="js/vendor/chart.umd.min.js"></script>
+  <script src="js/professor.js"></script>
+</body>
+</html>

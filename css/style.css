@@ -1,0 +1,550 @@
+/* =========================================================
+   Nômades Crosstraining · Área do Aluno
+   Design system: preto/marrom da marca + área de leitura clara
+   pensada para conforto visual (público 60+), mobile-first.
+   ========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap');
+
+:root {
+  /* Marca */
+  --brand-black: #120b08;
+  --brand-black-2: #1c110c;
+  --brand-maroon: #6b1414;
+  --brand-maroon-deep: #3d0b0b;
+  --brand-ember: #c2703f;
+
+  /* Leitura */
+  --paper: #f5f0e8;
+  --paper-2: #ffffff;
+  --ink: #241a14;
+  --ink-soft: #5a4b40;
+  --line: #e3d9cb;
+
+  /* Status (bom / atenção / elevado) */
+  --good: #2f6b46;
+  --good-bg: #e4efe6;
+  --warn: #93601a;
+  --warn-bg: #f6ead1;
+  --bad: #a53324;
+  --bad-bg: #f5dfd9;
+
+  /* Tipografia */
+  --font-display: 'Oswald', 'Arial Narrow', sans-serif;
+  --font-body: 'Source Sans 3', 'Segoe UI', Arial, sans-serif;
+
+  --radius: 14px;
+  --shadow: 0 6px 20px rgba(18, 11, 8, 0.12);
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+p { margin: 0 0 1em; }
+
+a { color: inherit; }
+
+button, input, select {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+img { max-width: 100%; display: block; }
+
+/* Foco visível para navegação por teclado */
+a:focus-visible,
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 3px solid var(--brand-ember);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+}
+
+/* ---------- Botão primário ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  min-height: 56px;
+  padding: 0.9em 1.6em;
+  border-radius: 999px;
+  border: none;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--brand-maroon), var(--brand-maroon-deep));
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(107, 20, 20, 0.35);
+}
+.btn-primary:hover { transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--paper);
+  border: 2px solid rgba(245, 240, 232, 0.5);
+}
+.btn-ghost:hover { border-color: #fff; }
+
+.btn-block { width: 100%; }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+/* ---------- Hero (index.html) ---------- */
+.hero {
+  min-height: 100svh;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px calc(40px + env(safe-area-inset-bottom, 0px));
+  padding-top: calc(48px + env(safe-area-inset-top, 0px));
+  background:
+    radial-gradient(120% 90% at 50% 12%, var(--brand-maroon-deep) 0%, var(--brand-black) 62%);
+  color: var(--paper);
+}
+
+.hero__mark {
+  width: min(56vw, 220px);
+  margin-bottom: 18px;
+  filter: drop-shadow(0 8px 30px rgba(0,0,0,0.45));
+}
+
+.hero__word {
+  font-size: clamp(2.1rem, 9vw, 3.4rem);
+  line-height: 0.98;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.hero__word span { display: block; color: var(--brand-ember); }
+
+.hero__tagline {
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 4vw, 1.25rem);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(245, 240, 232, 0.82);
+  margin-bottom: 40px;
+}
+
+.hero__cta { margin-bottom: 14px; min-width: min(100%, 320px); }
+
+.hero__note {
+  font-size: 0.92rem;
+  color: rgba(245, 240, 232, 0.6);
+  max-width: 320px;
+}
+
+/* ---------- Cabeçalho interno (aluno.html) ---------- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  padding-top: calc(14px + env(safe-area-inset-top, 0px));
+  background: var(--brand-black);
+  color: var(--paper);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.topbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--paper);
+  min-width: 0;
+}
+
+.topbar__brand img { width: 34px; height: 34px; flex-shrink: 0; }
+
+.topbar__brand span {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topbar__link {
+  font-size: 0.92rem;
+  color: rgba(245, 240, 232, 0.85);
+  text-decoration: none;
+  padding: 8px 10px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+.topbar__link:hover { background: rgba(255,255,255,0.08); }
+
+/* ---------- Container geral ---------- */
+.page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 18px calc(48px + env(safe-area-inset-bottom, 0px));
+}
+
+/* ---------- Cartão de login ---------- */
+.login-card {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 28px 22px;
+  box-shadow: var(--shadow);
+  margin-top: 12px;
+}
+
+.login-card h1 {
+  font-size: 1.5rem;
+  margin-bottom: 6px;
+}
+
+.login-card__lead {
+  color: var(--ink-soft);
+  margin-bottom: 24px;
+}
+
+.field { margin-bottom: 20px; }
+
+.field label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.field select,
+.field input {
+  width: 100%;
+  min-height: 52px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+}
+
+.date-select-group {
+  display: flex;
+  gap: 8px;
+}
+.date-select-group select { min-height: 52px; padding: 0 8px; text-align: center; }
+.date-select-group select:nth-child(1) { flex: 1; }
+.date-select-group select:nth-child(2) { flex: 1.6; }
+.date-select-group select:nth-child(3) { flex: 1.3; }
+
+.field select:focus,
+.field input:focus { border-color: var(--brand-maroon); }
+
+.field-hint {
+  margin-top: 8px;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+}
+
+.form-error {
+  display: none;
+  background: var(--bad-bg);
+  color: var(--bad);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  font-weight: 600;
+}
+.form-error.is-visible { display: block; }
+
+.state-message {
+  text-align: center;
+  color: var(--ink-soft);
+  padding: 40px 10px;
+}
+
+/* ---------- Dashboard ---------- */
+.dash-header {
+  margin-bottom: 20px;
+}
+.dash-header__eyebrow {
+  color: var(--brand-maroon);
+  font-weight: 700;
+  font-size: 0.92rem;
+  margin-bottom: 2px;
+}
+.dash-header h1 {
+  font-size: clamp(1.5rem, 6vw, 2rem);
+}
+.dash-header__updated {
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+  margin-top: 4px;
+}
+
+.card {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--brand-maroon);
+  border-radius: var(--radius);
+  padding: 22px 20px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+
+.card--frequencia { border-left-color: var(--brand-maroon); }
+.card--bio { border-left-color: var(--brand-ember); }
+.card--turma { border-left-color: var(--ink-soft); }
+
+.card h2 {
+  font-size: 1.15rem;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.card__subtitle {
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+  margin-bottom: 18px;
+}
+
+/* Frequência: resumo em número grande + donut */
+.freq-summary {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.freq-summary__chart { width: 108px; height: 108px; flex-shrink: 0; }
+
+.freq-summary__stats { flex: 1; min-width: 160px; }
+
+.freq-stat-big {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  line-height: 1;
+  color: var(--brand-maroon);
+}
+.freq-stat-big small { font-size: 1.1rem; font-family: var(--font-body); color: var(--ink-soft); }
+
+.freq-substats {
+  display: flex;
+  gap: 18px;
+  margin-top: 8px;
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+}
+.freq-substats strong { color: var(--ink); }
+
+.chart-wrap { position: relative; width: 100%; }
+.chart-wrap.trend { height: 190px; margin-top: 6px; }
+
+/* Tabela comparativa de bioimpedância */
+.bio-empty {
+  background: var(--warn-bg);
+  color: var(--warn);
+  border-radius: 10px;
+  padding: 16px;
+  font-weight: 600;
+}
+
+.bio-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+.bio-table th, .bio-table td {
+  text-align: left;
+  padding: 10px 6px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.95rem;
+  vertical-align: middle;
+}
+.bio-table th {
+  font-weight: 700;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.bio-table td.metric-name { font-weight: 600; }
+.bio-table td.num { white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* A seta indica só a direção da mudança (subiu/desceu) — o
+   julgamento de "bom/atenção/elevado" fica com o badge de
+   classificação, igual na planilha. */
+.delta { font-weight: 700; white-space: nowrap; color: var(--ink); }
+.delta.flat { color: var(--ink-soft); }
+
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.badge.good { background: var(--good-bg); color: var(--good); }
+.badge.warn { background: var(--warn-bg); color: var(--warn); }
+.badge.bad { background: var(--bad-bg); color: var(--bad); }
+
+.bio-period {
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  margin-bottom: 14px;
+}
+
+/* Comparação com a turma */
+.turma-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  gap: 12px;
+}
+.turma-row:last-child { border-bottom: none; }
+.turma-row__label { color: var(--ink-soft); }
+.turma-row__value { font-weight: 700; text-align: right; }
+
+/* ---------- Rodapé ---------- */
+.site-footer {
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  padding: 30px 20px calc(30px + env(safe-area-inset-bottom, 0px));
+}
+.site-footer img { width: 30px; margin: 0 auto 10px; opacity: 0.55; }
+
+.site-footer__link {
+  display: inline-block;
+  margin-top: 10px;
+  color: var(--ink-soft);
+  text-decoration: underline;
+  font-size: 0.85rem;
+}
+
+/* ---------- Área do Professor: KPIs ---------- */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+@media (min-width: 560px) {
+  .kpi-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.kpi-card {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 14px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.kpi-card__valor {
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  color: var(--brand-maroon);
+  line-height: 1.1;
+}
+.kpi-card__label {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  margin-top: 4px;
+}
+
+/* Dois donuts lado a lado (distribuição de IMC / gordura visceral) */
+.donut-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.donut-pair figure { margin: 0; text-align: center; }
+.donut-pair .chart-wrap { height: 150px; margin-bottom: 8px; }
+.donut-pair figcaption { font-size: 0.85rem; color: var(--ink-soft); }
+
+.donut-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 8px;
+  font-size: 0.8rem;
+}
+.donut-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.donut-legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+/* Busca + tabela de frequência por aluno */
+.search-input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  margin-bottom: 14px;
+}
+.search-input:focus { border-color: var(--brand-maroon); }
+
+.rank-table-wrap { max-height: 420px; overflow-y: auto; border-top: 1px solid var(--line); }
+.rank-table { width: 100%; border-collapse: collapse; }
+.rank-table th, .rank-table td {
+  text-align: left;
+  padding: 9px 6px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.92rem;
+}
+.rank-table th {
+  position: sticky;
+  top: 0;
+  background: var(--paper-2);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.rank-table td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rank-table tr:last-child td { border-bottom: none; }
+
+/* Tema escuro do sistema: mantemos o "paper" claro de propósito
+   (legibilidade para o público do Projeto 60 É Mais), só ajustamos
+   o próprio hero/topbar, que já são escuros por definição. */

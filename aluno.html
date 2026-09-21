@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Área do Aluno · Nômades Crosstraining</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <a class="topbar__brand" href="index.html">
+      <img src="assets/icon-mark-white.png" alt="">
+      <span>Nômades Crosstraining</span>
+    </a>
+    <a class="topbar__link" id="link-trocar-aluno" href="#" style="display:none">Trocar aluno</a>
+  </header>
+
+  <div class="page">
+
+    <!-- Carregando -->
+    <section id="secao-carregando" class="state-message">
+      <p>Carregando seus dados…</p>
+    </section>
+
+    <!-- Erro de carregamento -->
+    <section id="secao-erro" class="state-message" style="display:none">
+      <p id="erro-mensagem">Não foi possível carregar os dados.</p>
+      <button id="botao-tentar-de-novo" class="btn btn-primary" type="button">Tentar de novo</button>
+    </section>
+
+    <!-- Login -->
+    <section id="secao-login" style="display:none">
+      <div id="aviso-demo" class="field-hint" style="display:none; margin-bottom:14px;">
+        Modo demonstração — os dados abaixo são fictícios. Configure os links da planilha em <code>js/config.js</code> para ver os dados reais.
+      </div>
+
+      <div class="login-card">
+        <h1>Área do Aluno</h1>
+        <p class="login-card__lead">Selecione seu nome e informe sua data de nascimento para ver seu acompanhamento.</p>
+
+        <div id="erro-login" class="form-error" role="alert"></div>
+
+        <form id="formulario-login" novalidate>
+          <div class="field">
+            <label for="select-aluno">Seu nome</label>
+            <select id="select-aluno" required>
+              <option value="" disabled selected>Carregando lista de alunos…</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="select-dia">Sua data de nascimento</label>
+            <div class="date-select-group">
+              <select id="select-dia" required aria-label="Dia de nascimento">
+                <option value="" disabled selected>Dia</option>
+              </select>
+              <select id="select-mes" required aria-label="Mês de nascimento">
+                <option value="" disabled selected>Mês</option>
+              </select>
+              <select id="select-ano" required aria-label="Ano de nascimento">
+                <option value="" disabled selected>Ano</option>
+              </select>
+            </div>
+            <p class="field-hint">É a sua senha de acesso — a mesma data cadastrada na ficha da Nômades.</p>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">Ver meu acompanhamento</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Dashboard -->
+    <section id="secao-dashboard" style="display:none">
+
+      <div class="dash-header">
+        <p class="dash-header__eyebrow">Ficha de acompanhamento</p>
+        <h1 id="dash-nome">—</h1>
+        <p class="dash-header__updated" id="dash-atualizado"></p>
+      </div>
+
+      <!-- Frequência -->
+      <div class="card card--frequencia">
+        <h2>Frequência</h2>
+        <p class="card__subtitle">Suas aulas registradas até o momento</p>
+
+        <div id="freq-vazio" class="state-message" style="display:none; padding:10px 0;">
+          Ainda não há aulas registradas para você.
+        </div>
+
+        <div id="freq-conteudo">
+          <div class="freq-summary">
+            <div class="freq-summary__chart chart-wrap">
+              <canvas id="chart-donut" aria-label="Gráfico de presenças e faltas" role="img"></canvas>
+            </div>
+            <div class="freq-summary__stats">
+              <div class="freq-stat-big" id="freq-pct">—</div>
+              <div style="color:var(--ink-soft); margin-top:2px;">de frequência geral</div>
+              <div class="freq-substats">
+                <span><strong id="freq-presencas">0</strong> presenças</span>
+                <span><strong id="freq-faltas">0</strong> faltas</span>
+                <span><strong id="freq-total">0</strong> aulas</span>
+              </div>
+            </div>
+          </div>
+          <div class="chart-wrap trend">
+            <canvas id="chart-trend" aria-label="Evolução do percentual de presença por mês" role="img"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bioimpedância -->
+      <div class="card card--bio">
+        <h2>Bioimpedância</h2>
+        <p class="card__subtitle">Evolução da sua avaliação física</p>
+
+        <div id="bio-vazio" class="state-message" style="display:none; padding:10px 0;">
+          Você ainda não tem avaliação de bioimpedância registrada.
+        </div>
+
+        <div id="bio-aguardando" style="display:none">
+          <div class="bio-empty">Aguardando 2ª avaliação para mostrar a evolução. Aqui está sua primeira avaliação, feita em <span id="bio-unica-data"></span>:</div>
+          <div id="bio-unica-corpo" style="margin-top:14px;"></div>
+        </div>
+
+        <div id="bio-conteudo" style="display:none">
+          <p class="bio-period" id="bio-periodo"></p>
+          <table class="bio-table">
+            <thead>
+              <tr>
+                <th>Métrica</th>
+                <th>1ª avaliação</th>
+                <th>Atual</th>
+                <th>Variação</th>
+              </tr>
+            </thead>
+            <tbody id="bio-tbody"></tbody>
+          </table>
+          <div class="chart-wrap trend">
+            <canvas id="chart-bio" aria-label="Evolução do peso ao longo das avaliações" role="img"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comparação com a turma -->
+      <div class="card card--turma" id="card-turma" style="display:none">
+        <h2>Comparação com a turma</h2>
+        <p class="card__subtitle">Sua última avaliação frente à média de todos os alunos</p>
+        <div id="turma-conteudo"></div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <footer class="site-footer">
+    <img src="assets/icon-mark-ink.png" alt="">
+    Nômades Crosstraining · Projeto 60 É Mais
+  </footer>
+
+  <script src="js/csv.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/demo-data.js"></script>
+  <script src="js/shared.js"></script>
+  <script src="js/vendor/chart.umd.min.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
