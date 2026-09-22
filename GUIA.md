@@ -7,6 +7,7 @@ atualizado. Ele tem 4 partes:
 2. [Preparar a Planilha Google](#2-preparar-a-planilha-google) (uma vez só)
 3. [Publicar no GitHub](#3-publicar-no-github) (uma vez só)
 4. [Atualizar todo mês](#4-atualizar-todo-mês) (rotina — é isto que você vai repetir)
+5. [Cores, gráficos e idade metabólica](#5-cores-gráficos-e-idade-metabólica) (como personalizar)
 
 ---
 
@@ -229,6 +230,65 @@ Sempre que fizer uma avaliação nova de um aluno:
 Depois desses passos, é isso — não precisa publicar de novo, não precisa
 copiar link de novo, não precisa subir nada no GitHub. Na próxima vez que
 alguém abrir o site, os dados já vêm atualizados direto da planilha.
+
+---
+
+## 5. Cores, gráficos e idade metabólica
+
+Esta rodada de melhorias mexeu só na **Área do Aluno** (a Área do Professor
+continua igual). O que mudou:
+
+### Cores em tudo, não só no IMC e na Gordura Visceral
+
+Antes, só IMC e Gordura Visceral ganhavam um selo colorido (bom/atenção/
+elevado), porque só eles tinham uma coluna de "Classificação" na planilha.
+Agora a coluna **Variação** da tabela também fica colorida — verde quando a
+mudança foi pra melhor, vermelho quando foi pra pior — para **todas** as
+métricas (Peso, IMC, % Gordura, % Massa Magra, Gordura Visceral e Idade
+Metabólica).
+
+Como o site decide o que é "melhora" pra cada métrica:
+- **% Gordura**: diminuir é melhora.
+- **% Massa Magra**: aumentar é melhora.
+- **Idade Metabólica**: diminuir é melhora.
+- **Peso e IMC**: usam a classificação de IMC da própria planilha. Se o
+  aluno mudou de faixa (ex.: saiu de "Sobrepeso" pra "Peso Adequado"), conta
+  como melhora. Se ficou na mesma faixa, o site ainda olha se o número andou
+  na direção da faixa ideal (por exemplo, emagrecer continua sendo verde
+  mesmo enquanto o aluno ainda está classificado como "Sobrepeso").
+- **Gordura Visceral**: mesma lógica de faixa, usando a "Classificação
+  Visceral" da planilha.
+
+Se um dia você criar uma classificação nova (ex.: uma faixa nova de IMC),
+adicione ela em **dois lugares** no `js/config.js`: em `classificacoes`
+(pra cor do selo) e em `classificacoesOrdem` (pra cor da variação — número
+menor = classificação melhor).
+
+### Gráfico de evolução com seletor de métrica
+
+O gráfico da Bioimpedância agora tem botões (Peso, IMC, % Gordura, % Massa
+Magra, Gordura Visceral, Idade Metabólica) para escolher qual métrica ver
+evoluindo ao longo das avaliações — antes só mostrava o Peso. Nos gráficos
+de IMC e Gordura Visceral, cada ponto também é colorido conforme a
+classificação daquela avaliação.
+
+### Comparação "Idade Real x Idade Metabólica"
+
+Card novo que compara a idade real do aluno (calculada a partir da data de
+nascimento) com a Idade Metabólica da avaliação mais recente. Aparece em
+verde quando a metabólica é menor que a real, e em amarelo/vermelho quando
+está acima — o limite entre amarelo e vermelho é 3 anos de diferença, e dá
+pra mudar isso em `js/config.js`, no bloco `idadeMetabolica.toleranciaAtencao`.
+
+### Bugs de exibição corrigidos
+
+- A tabela de bioimpedância agora tem rolagem horizontal própria em telas
+  estreitas, em vez de espremer o conteúdo ou estourar a largura da página.
+- O número e o selo de classificação (ex.: "25.7 Sobrepeso") agora quebram
+  linha direitinho quando não cabem lado a lado num celular mais estreito.
+- O gráfico de frequência mensal e o número grande de frequência geral
+  agora também ficam coloridos por faixa (verde 80%+, amarelo 60-79%,
+  vermelho abaixo de 60%).
 
 ---
 

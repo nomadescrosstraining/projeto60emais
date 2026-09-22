@@ -104,8 +104,9 @@
               </div>
             </div>
           </div>
+          <div class="donut-legend" id="freq-legenda"></div>
           <div class="chart-wrap trend">
-            <canvas id="chart-trend" aria-label="Evolução do percentual de presença por mês" role="img"></canvas>
+            <canvas id="chart-trend" aria-label="Evolução do percentual de presença por mês, colorido por faixa (verde 80% ou mais, amarelo 60% a 79%, vermelho abaixo de 60%)" role="img"></canvas>
           </div>
         </div>
       </div>
@@ -126,21 +127,33 @@
 
         <div id="bio-conteudo" style="display:none">
           <p class="bio-period" id="bio-periodo"></p>
-          <table class="bio-table">
-            <thead>
-              <tr>
-                <th>Métrica</th>
-                <th>1ª avaliação</th>
-                <th>Atual</th>
-                <th>Variação</th>
-              </tr>
-            </thead>
-            <tbody id="bio-tbody"></tbody>
-          </table>
-          <div class="chart-wrap trend">
-            <canvas id="chart-bio" aria-label="Evolução do peso ao longo das avaliações" role="img"></canvas>
+          <div class="table-scroll">
+            <table class="bio-table">
+              <thead>
+                <tr>
+                  <th>Métrica</th>
+                  <th>1ª avaliação</th>
+                  <th>Atual</th>
+                  <th>Variação</th>
+                </tr>
+              </thead>
+              <tbody id="bio-tbody"></tbody>
+            </table>
           </div>
+
+          <div class="metric-pills" id="bio-metric-pills" role="tablist" aria-label="Escolher métrica do gráfico de evolução"></div>
+          <div class="chart-wrap trend">
+            <canvas id="chart-bio" aria-label="Gráfico de evolução da métrica selecionada, ao longo das avaliações" role="img"></canvas>
+          </div>
+          <div class="chart-legend" id="bio-chart-legenda"></div>
         </div>
+      </div>
+
+      <!-- Idade Metabólica -->
+      <div class="card card--idade" id="card-idade" style="display:none">
+        <h2>Idade Metabólica</h2>
+        <p class="card__subtitle">Como ela se compara com a sua idade real</p>
+        <div id="idade-conteudo"></div>
       </div>
 
       <!-- Comparação com a turma -->

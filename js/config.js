@@ -47,5 +47,41 @@ const NOMADES_CONFIG = {
       "Elevado": "warn",
       "Muito Elevado": "bad"
     }
+  },
+
+  // Ordem de gravidade de cada classificação (0 = melhor classificação
+  // possível, números maiores = mais grave). Usada para decidir a COR da
+  // variação na tabela do aluno: se a nova avaliação caiu para um número
+  // menor que a anterior, a variação aparece em verde (mudou de faixa pra
+  // melhor); se subiu, aparece em vermelho; se ficou na mesma faixa (ex.:
+  // "Sobrepeso" nas duas vezes), o site ainda olha se o número andou na
+  // direção da faixa ideal pra decidir a cor. Se adicionar uma
+  // classificação nova acima, adicione a ordem dela aqui também (mesmo
+  // texto, mesmo mapa "imc"/"visceral").
+  classificacoesOrdem: {
+    imc: {
+      "Peso Adequado": 0,
+      "Baixo Peso": 1,
+      "Sobrepeso": 1,
+      "Obesidade": 2,
+      "Obesidade Grau I": 2,
+      "Obesidade Grau II": 3,
+      "Obesidade Grau III": 4
+    },
+    visceral: {
+      "Saudável/Normal": 0,
+      "Elevado": 1,
+      "Muito Elevado": 2
+    }
+  },
+
+  // Comparação "idade real x idade metabólica": a partir de quantos anos
+  // de diferença a mensagem muda de tom. Com os valores abaixo:
+  //   metabólica menor que a real            → verde (ótimo sinal)
+  //   metabólica igual à real                 → neutro
+  //   metabólica até 3 anos acima da real      → amarelo (atenção)
+  //   metabólica mais de 3 anos acima da real  → vermelho
+  idadeMetabolica: {
+    toleranciaAtencao: 3
   }
 };

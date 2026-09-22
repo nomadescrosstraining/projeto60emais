@@ -334,6 +334,7 @@ input:focus-visible {
 
 .card--frequencia { border-left-color: var(--brand-maroon); }
 .card--bio { border-left-color: var(--brand-ember); }
+.card--idade { border-left-color: var(--brand-maroon-deep); }
 .card--turma { border-left-color: var(--ink-soft); }
 
 .card h2 {
@@ -367,6 +368,10 @@ input:focus-visible {
   color: var(--brand-maroon);
 }
 .freq-stat-big small { font-size: 1.1rem; font-family: var(--font-body); color: var(--ink-soft); }
+.freq-stat-big.tom-good { color: var(--good); }
+.freq-stat-big.tom-warn { color: var(--warn); }
+.freq-stat-big.tom-bad { color: var(--bad); }
+.freq-stat-big.tom-flat { color: var(--ink-soft); }
 
 .freq-substats {
   display: flex;
@@ -404,14 +409,88 @@ input:focus-visible {
   text-transform: uppercase;
   letter-spacing: 0.02em;
 }
-.bio-table td.metric-name { font-weight: 600; }
+.bio-table td.metric-name { font-weight: 600; white-space: nowrap; }
 .bio-table td.num { white-space: nowrap; font-variant-numeric: tabular-nums; }
 
-/* A seta indica só a direção da mudança (subiu/desceu) — o
-   julgamento de "bom/atenção/elevado" fica com o badge de
-   classificação, igual na planilha. */
-.delta { font-weight: 700; white-space: nowrap; color: var(--ink); }
-.delta.flat { color: var(--ink-soft); }
+/* Em telas estreitas a tabela ganha rolagem horizontal própria em vez de
+   espremer o conteúdo ou estourar a largura da página. */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 16px;
+}
+.table-scroll .bio-table { margin-bottom: 0; min-width: 480px; }
+
+/* Seletor de métrica (pílulas) do gráfico de evolução da bioimpedância */
+.metric-pills {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 2px 6px;
+  margin-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+.metric-pill {
+  flex-shrink: 0;
+  border: 1.5px solid var(--line);
+  background: var(--paper-2);
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.86rem;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.metric-pill:hover { border-color: var(--brand-ember); }
+.metric-pill.is-active {
+  background: var(--brand-maroon);
+  border-color: var(--brand-maroon);
+  color: #fff;
+}
+
+/* Legenda textual/colorida embaixo dos gráficos de evolução */
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 10px;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+.chart-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.chart-legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.chart-legend__nota { font-style: italic; }
+
+/* Variação (delta) da tabela de bioimpedância: chip colorido — verde quando
+   a mudança foi pra melhor, vermelho quando foi pra pior, neutro quando não
+   dá pra avaliar ou a mudança foi pequena demais. */
+.delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: 700;
+  white-space: nowrap;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+}
+.delta--good { background: var(--good-bg); color: var(--good); }
+.delta--bad { background: var(--bad-bg); color: var(--bad); }
+.delta--flat { background: var(--line); color: var(--ink-soft); }
+
+/* Valor numérico + badge de classificação na mesma célula/linha, sem
+   estourar a largura em telas estreitas — quebra pro badge ir pra linha
+   de baixo quando não cabe do lado do número. */
+.num-com-badge {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
 
 .badge {
   display: inline-block;
@@ -443,6 +522,57 @@ input:focus-visible {
 .turma-row:last-child { border-bottom: none; }
 .turma-row__label { color: var(--ink-soft); }
 .turma-row__value { font-weight: 700; text-align: right; }
+
+/* Idade Metabólica x Idade Real: duas barras horizontais comparando os
+   dois números, coloridas conforme o resultado (verde = metabólica mais
+   jovem, amarelo/vermelho = metabólica acima da real). */
+.idade-compare__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.idade-compare__row:last-child { margin-bottom: 0; }
+.idade-compare__label {
+  width: 112px;
+  flex-shrink: 0;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+}
+.idade-compare__barwrap {
+  flex: 1;
+  background: var(--paper);
+  border-radius: 999px;
+  height: 20px;
+  overflow: hidden;
+}
+.idade-compare__bar {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+.idade-compare__bar--real { background: var(--ink-soft); }
+.idade-compare__bar--good { background: var(--good); }
+.idade-compare__bar--warn { background: var(--warn); }
+.idade-compare__bar--bad { background: var(--bad); }
+.idade-compare__bar--flat { background: var(--brand-ember); }
+.idade-compare__value {
+  width: 64px;
+  flex-shrink: 0;
+  text-align: right;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.idade-compare__msg {
+  margin: 14px 0 0;
+  font-weight: 600;
+  padding: 12px 14px;
+  border-radius: 10px;
+}
+.idade-compare__msg--good { background: var(--good-bg); color: var(--good); }
+.idade-compare__msg--warn { background: var(--warn-bg); color: var(--warn); }
+.idade-compare__msg--bad { background: var(--bad-bg); color: var(--bad); }
+.idade-compare__msg--flat { background: var(--line); color: var(--ink-soft); }
 
 /* ---------- Rodapé ---------- */
 .site-footer {

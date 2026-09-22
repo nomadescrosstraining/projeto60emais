@@ -7,7 +7,11 @@
 (function () {
   "use strict";
 
-  const state = { alunos: [], frequencia: [], bioimpedancia: [], alunoAtual: null };
+  const state = {
+    alunos: [], frequencia: [], bioimpedancia: [],
+    alunoAtual: null, alunoAtualDados: null,
+    bioLinhasAtual: [], metricaSelecionada: "Peso",
+  };
   let chartDonut = null, chartTrend = null, chartBio = null;
 
   const el = (id) => document.getElementById(id);
@@ -107,6 +111,7 @@
 
     esconderErroLogin();
     state.alunoAtual = nome;
+    state.alunoAtualDados = aluno;
     renderizarDashboard(nome);
     mostrarSecao("dashboard");
     window.scrollTo({ top: 0, behavior: "instant" in window.scrollTo ? "instant" : "auto" });
@@ -115,6 +120,7 @@
   function trocarAluno(evento) {
     evento.preventDefault();
     state.alunoAtual = null;
+    state.alunoAtualDados = null;
     el("formulario-login").reset();
     esconderErroLogin();
     mostrarSecao("login");
@@ -122,11 +128,23 @@
 
   /* ---------------- Dashboard: Frequência ---------------- */
 
+  /* Faixas de cor usadas na frequência: 80%+ verde, 60-79% amarelo, abaixo vermelho. */
+  function tomFrequencia(pct) {
+    if (pct === null) return "flat";
+    if (pct >= 0.8) return "good";
+    if (pct >= 0.6) return "warn";
+    return "bad";
+  }
+
   function renderizarFrequencia(nome) {
     const resumo = resumoFrequenciaAluno(state.frequencia, nome);
     const linhas = resumo.linhas;
 
-    el("freq-pct").textContent = resumo.pct !== null ? Math.round(resumo.pct * 100) + "%" : "—";
+    const tomPct = tomFrequencia(resumo.pct);
+    const pctEl = el("freq-pct");
+    pctEl.textContent = resumo.pct !== null ? Math.round(resumo.pct * 100) + "%" : "—";
+    pctEl.className = "freq-stat-big tom-" + tomPct;
+
     el("freq-presencas").textContent = resumo.presencas;
     el("freq-faltas").textContent = resumo.faltas;
     el("freq-total").textContent = resumo.total;
@@ -160,6 +178,16 @@
       },
     });
 
+    el("freq-legenda").innerHTML =
+      `<span><i style="background:${corMaroon}"></i>Presenças (${resumo.presencas})</span>` +
+      `<span><i style="background:${corLinha}"></i>Faltas (${resumo.faltas})</span>`;
+
+    const corTomFreq = (tom) => {
+      if (tom === "good") return corCss("--good", "#2f6b46");
+      if (tom === "warn") return corCss("--warn", "#93601a");
+      return corCss("--bad", "#a53324");
+    };
+
     if (chartTrend) chartTrend.destroy();
     chartTrend = new Chart(el("chart-trend").getContext("2d"), {
       type: "bar",
@@ -168,7 +196,7 @@
         datasets: [{
           label: "% Presença",
           data: linhas.map((l) => Math.round((paraFracao(l["% Presença"]) || 0) * 100)),
-          backgroundColor: corMaroon,
+          backgroundColor: linhas.map((l) => corTomFreq(tomFrequencia(paraFracao(l["% Presença"])))),
           borderRadius: 6,
           maxBarThickness: 34,
         }],
@@ -195,12 +223,13 @@
       const diff = v2 - v1;
       const mostrado = m.fracao ? diff * 100 : diff;
       const seta = mostrado > 0.05 ? "▲" : mostrado < -0.05 ? "▼" : "▬";
-      deltaHtml = `<span class="delta">${seta} ${mostrado >= 0 ? "+" : ""}${mostrado.toFixed(m.casas)}${m.unidade}</span>`;
+      const tom = tomVariacao(m, primeira, atual);
+      deltaHtml = `<span class="delta delta--${tom}">${seta} ${mostrado >= 0 ? "+" : ""}${mostrado.toFixed(m.casas)}${m.unidade}</span>`;
     }
     return `<tr>
       <td class="metric-name">${m.label}</td>
       <td class="num">${formatarValor(m, v1)}</td>
-      <td class="num">${formatarValor(m, v2)}${badgeClassificacao(m, atual)}</td>
+      <td class="num"><span class="num-com-badge">${formatarValor(m, v2)}${badgeClassificacao(m, atual)}</span></td>
       <td class="num">${deltaHtml}</td>
     </tr>`;
   }
@@ -210,9 +239,105 @@
       const v = valorMetrica(m, u);
       return `<div class="turma-row">
         <span class="turma-row__label">${m.label}</span>
-        <span class="turma-row__value">${formatarValor(m, v)}${badgeClassificacao(m, u)}</span>
+        <span class="turma-row__value"><span class="num-com-badge">${formatarValor(m, v)}${badgeClassificacao(m, u)}</span></span>
       </div>`;
     }).join("");
+  }
+
+  /* Cor de cada ponto do gráfico de evolução. Métricas com classificação
+     própria na planilha (Peso e IMC usam a do IMC; Gordura Visceral usa a
+     dela) pintam cada ponto conforme o "tom" daquela avaliação — assim dá
+     pra ver de relance em quais avaliações a métrica esteve boa, em atenção
+     ou elevada. As demais métricas usam sempre a cor sólida da métrica. */
+  function corPontosMetrica(m, linhas) {
+    if (m.sentido !== "classificacao") return null;
+    return linhas.map((l) => {
+      const texto = (l[m.ordemChave] || "").trim();
+      const tom = (NOMADES_CONFIG.classificacoes[m.ordemMapa] || {})[texto];
+      if (tom === "good") return corCss("--good", "#2f6b46");
+      if (tom === "warn") return corCss("--warn", "#93601a");
+      if (tom === "bad") return corCss("--bad", "#a53324");
+      return corCss(m.corVar, "#6b1414");
+    });
+  }
+
+  function construirPillsMetricas() {
+    const container = el("bio-metric-pills");
+    if (!container) return;
+    container.innerHTML = METRICAS_BIO.map((m) =>
+      `<button type="button" class="metric-pill" data-chave="${escapeHtml(m.chave)}" role="tab" aria-selected="false">${escapeHtml(m.label)}</button>`
+    ).join("");
+    container.querySelectorAll(".metric-pill").forEach((botao) => {
+      botao.addEventListener("click", () => desenharGraficoBio(botao.dataset.chave));
+    });
+  }
+
+  function desenharGraficoBio(chave) {
+    const linhas = state.bioLinhasAtual;
+    if (!linhas || linhas.length < 2) return;
+    const m = METRICAS_BIO.find((mm) => mm.chave === chave) || METRICAS_BIO[0];
+    state.metricaSelecionada = m.chave;
+
+    const corBase = corCss(m.corVar, "#6b1414");
+    const coresPontos = corPontosMetrica(m, linhas);
+    const dados = linhas.map((l) => {
+      const v = valorMetrica(m, l);
+      return v === null ? null : (m.fracao ? v * 100 : v);
+    });
+
+    if (chartBio) chartBio.destroy();
+    chartBio = new Chart(el("chart-bio").getContext("2d"), {
+      type: "line",
+      data: {
+        labels: linhas.map((l) => formatarDataBR(l._data)),
+        datasets: [{
+          label: m.label,
+          data: dados,
+          borderColor: corBase,
+          backgroundColor: corBase,
+          pointBackgroundColor: coresPontos || corBase,
+          pointBorderColor: coresPontos || corBase,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          spanGaps: true,
+          tension: 0.3,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (c) => m.label + ": " + (c.parsed.y === null ? "sem dado" : c.parsed.y.toFixed(m.casas) + m.unidade),
+            },
+          },
+        },
+        scales: { y: { title: { display: true, text: m.label + (m.unidade ? " (" + m.unidade.trim() + ")" : "") } } },
+      },
+    });
+
+    const pills = document.querySelectorAll("#bio-metric-pills .metric-pill");
+    pills.forEach((botao) => {
+      const ativo = botao.dataset.chave === m.chave;
+      botao.classList.toggle("is-active", ativo);
+      botao.setAttribute("aria-selected", ativo ? "true" : "false");
+    });
+
+    const legenda = el("bio-chart-legenda");
+    if (m.sentido === "classificacao") {
+      legenda.innerHTML =
+        `<span><i style="background:${corCss("--good", "#2f6b46")}"></i>Bom</span>` +
+        `<span><i style="background:${corCss("--warn", "#93601a")}"></i>Atenção</span>` +
+        `<span><i style="background:${corCss("--bad", "#a53324")}"></i>Elevado</span>`;
+    } else if (m.sentido === "menorMelhor") {
+      legenda.innerHTML = `<span class="chart-legend__nota">Quanto menor, melhor</span>`;
+    } else if (m.sentido === "maiorMelhor") {
+      legenda.innerHTML = `<span class="chart-legend__nota">Quanto maior, melhor</span>`;
+    } else {
+      legenda.innerHTML = "";
+    }
   }
 
   function renderizarBioimpedancia(nome) {
@@ -221,6 +346,8 @@
       .map((b) => Object.assign({}, b, { _data: parseDataBR(b["Data"]) }))
       .filter((b) => b._data)
       .sort((a, b) => a._data - b._data);
+
+    state.bioLinhasAtual = linhas;
 
     const vazio = el("bio-vazio");
     const aguardando = el("bio-aguardando");
@@ -253,29 +380,61 @@
 
     el("bio-tbody").innerHTML = METRICAS_BIO.map((m) => linhaTabelaBio(m, primeira, atual)).join("");
 
-    const corMaroon = corCss("--brand-maroon", "#6b1414");
+    desenharGraficoBio(state.metricaSelecionada || "Peso");
+  }
 
-    if (chartBio) chartBio.destroy();
-    chartBio = new Chart(el("chart-bio").getContext("2d"), {
-      type: "line",
-      data: {
-        labels: linhas.map((l) => formatarDataBR(l._data)),
-        datasets: [{
-          label: "Peso (kg)",
-          data: linhas.map((l) => paraNumero(l["Peso"])),
-          borderColor: corMaroon,
-          backgroundColor: corMaroon,
-          tension: 0.3,
-          pointRadius: 4,
-        }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: { y: { title: { display: true, text: "Peso (kg)" } } },
-      },
-    });
+  /* ---------------- Dashboard: Idade Metabólica ---------------- */
+
+  function renderizarIdadeMetabolica() {
+    const card = el("card-idade");
+    const linhas = state.bioLinhasAtual;
+
+    if (!linhas.length || !state.alunoAtualDados) { card.style.display = "none"; return; }
+
+    const ultima = linhas[linhas.length - 1];
+    const idadeMeta = paraNumero(ultima["Idade Metabólica"]);
+    const nascimento = parseDataBR(state.alunoAtualDados["Data de Nascimento"]);
+    const idadeReal = nascimento ? calcularIdade(nascimento, ultima._data) : null;
+
+    if (idadeMeta === null || isNaN(idadeMeta) || idadeReal === null) { card.style.display = "none"; return; }
+    card.style.display = "";
+
+    const diff = idadeReal - idadeMeta; // positivo = metabólica mais jovem que a real
+    const tolerancia = (NOMADES_CONFIG.idadeMetabolica || {}).toleranciaAtencao ?? 3;
+
+    let tom, mensagem;
+    if (diff > 0) {
+      tom = "good";
+      mensagem = `Sua idade metabólica está ${diff} ano${diff === 1 ? "" : "s"} abaixo da sua idade real — ótimo sinal!`;
+    } else if (diff === 0) {
+      tom = "flat";
+      mensagem = "Sua idade metabólica é igual à sua idade real.";
+    } else {
+      const acima = Math.abs(diff);
+      tom = acima > tolerancia ? "bad" : "warn";
+      mensagem = `Sua idade metabólica está ${acima} ano${acima === 1 ? "" : "s"} acima da sua idade real.`;
+    }
+
+    const maiorIdade = Math.max(idadeReal, idadeMeta);
+    const escala = maiorIdade > 0 ? maiorIdade * 1.15 : 1;
+    const pctReal = Math.min(100, (idadeReal / escala) * 100);
+    const pctMeta = Math.min(100, (idadeMeta / escala) * 100);
+
+    el("idade-conteudo").innerHTML = `
+      <div class="idade-compare">
+        <div class="idade-compare__row">
+          <span class="idade-compare__label">Idade real</span>
+          <div class="idade-compare__barwrap"><div class="idade-compare__bar idade-compare__bar--real" style="width:${pctReal}%"></div></div>
+          <span class="idade-compare__value">${idadeReal} anos</span>
+        </div>
+        <div class="idade-compare__row">
+          <span class="idade-compare__label">Idade metabólica</span>
+          <div class="idade-compare__barwrap"><div class="idade-compare__bar idade-compare__bar--${tom}" style="width:${pctMeta}%"></div></div>
+          <span class="idade-compare__value">${idadeMeta} anos</span>
+        </div>
+      </div>
+      <p class="idade-compare__msg idade-compare__msg--${tom}">${mensagem}</p>
+    `;
   }
 
   /* ---------------- Dashboard: Comparação com a turma ---------------- */
@@ -316,8 +475,10 @@
   function renderizarDashboard(nome) {
     el("dash-nome").textContent = nome;
     el("dash-atualizado").textContent = "Consulta em " + new Date().toLocaleDateString("pt-BR");
+    state.metricaSelecionada = "Peso";
     renderizarFrequencia(nome);
     renderizarBioimpedancia(nome);
+    renderizarIdadeMetabolica();
     renderizarComparacaoTurma(nome);
   }
 
@@ -329,6 +490,7 @@
       await carregarDados();
       popularSelect();
       popularSeletoresDeData();
+      construirPillsMetricas();
       mostrarSecao("login");
     } catch (erro) {
       console.error(erro);
