@@ -8,6 +8,7 @@ atualizado. Ele tem 4 partes:
 3. [Publicar no GitHub](#3-publicar-no-github) (uma vez só)
 4. [Atualizar todo mês](#4-atualizar-todo-mês) (rotina — é isto que você vai repetir)
 5. [Cores, gráficos e idade metabólica](#5-cores-gráficos-e-idade-metabólica) (como personalizar)
+6. [Nova rodada de melhorias visuais](#6-nova-rodada-de-melhorias-visuais) (o que mudou agora)
 
 ---
 
@@ -289,6 +290,60 @@ pra mudar isso em `js/config.js`, no bloco `idadeMetabolica.toleranciaAtencao`.
 - O gráfico de frequência mensal e o número grande de frequência geral
   agora também ficam coloridos por faixa (verde 80%+, amarelo 60-79%,
   vermelho abaixo de 60%).
+
+---
+
+## 6. Nova rodada de melhorias visuais
+
+Esta rodada mexeu nas duas áreas do site (a rodada anterior, descrita na
+seção 5, tinha mexido só na Área do Aluno). O que mudou:
+
+### Cores dos gráficos de pizza (donut) do professor
+
+O gráfico "Classificação de IMC" tinha um problema real: como o IMC tem 7
+classificações possíveis mas só existiam 3 cores (bom/atenção/elevado),
+"Baixo Peso" e "Sobrepeso" saíam com a cor **idêntica** no gráfico — dava
+pra confundir as fatias. O mesmo acontecia entre as 4 faixas de obesidade.
+Agora cada classificação tem sua própria cor (`coresClassificacao`, em
+`js/config.js`), num degradê que vai do verde (peso adequado) até o
+vermelho mais escuro (obesidade grau III).
+
+Se um dia você criar uma classificação nova de IMC ou de Gordura Visceral,
+o ideal é adicionar ela em **três** lugares do `js/config.js`:
+`classificacoes` (o tom bom/atenção/elevado), `classificacoesOrdem` (pra
+cor da variação) e agora também `coresClassificacao` (pra cor própria no
+gráfico). Sem essa terceira, a classificação nova continua funcionando
+normalmente — só usa a cor do tom em vez de uma cor só dela.
+
+### Novo gráfico: distribuição de frequência da turma
+
+Dentro do card "Frequência da turma", agora tem um donut mostrando quantos
+alunos ativos estão em cada faixa (80% ou mais / 60% a 79% / abaixo de
+60%) — dá pra ver de relance se a turma está bem ou se tem muita gente
+precisando de um empurrão.
+
+### KPI trocado: "Baixa frequência" no lugar de "Aguardando 2ª avaliação"
+
+No topo do painel do professor, o card "Aguardando 2ª avaliação" saiu. No
+lugar entrou **"Baixa frequência"**: quantos alunos ativos estão abaixo de
+60% de presença. Ele fica vermelho quando esse número é maior que zero, e
+verde quando é zero (ninguém precisando de atenção agora).
+
+### Comparação com a turma (Área do Aluno) agora em barras
+
+O card "Comparação com a turma" trocou a lista de números por barrinhas
+(Você / Turma) para cada métrica — Peso, IMC, % Gordura e Gordura Visceral.
+Fica mais rápido de ler num relance do que a lista de números de antes. As
+cores não indicam se "acima da média" é bom ou ruim (isso depende da
+métrica e de quem mais está na turma) — só ajudam a visualizar a diferença.
+
+### Outros ajustes
+
+Ícones nos cards de KPI do professor, sombras e efeito de toque (hover)
+mais refinados nos botões e cartões, layout em duas colunas no painel do
+professor quando a tela é larga (computador), gráficos de evolução com uma
+área sombreada sob a linha, e um numeral "60" discreto no fundo da tela
+inicial, remetendo ao nome do projeto.
 
 ---
 

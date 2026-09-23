@@ -28,6 +28,90 @@ function corCss(nomeVar, reserva) {
   return v || reserva;
 }
 
+/** Cor CSS para um "tom" (good/warn/bad), com uma cor neutra de reserva. */
+function corTom(tom) {
+  if (tom === "good") return corCss("--good", "#2f6b46");
+  if (tom === "warn") return corCss("--warn", "#93601a");
+  if (tom === "bad") return corCss("--bad", "#a53324");
+  return corCss("--ink-soft", "#5a4b40");
+}
+
+/**
+ * Cor de uma classificação específica (ex.: "Obesidade Grau II"), usada nos
+ * gráficos de pizza/donut e nos pontos coloridos do gráfico de evolução.
+ *
+ * Por que isto existe: o mapa `classificacoes` do config.js só distingue 3
+ * tons (bom/atenção/elevado), mas o IMC sozinho tem 7 classificações
+ * diferentes — "Baixo Peso" e "Sobrepeso" caem os dois em "atenção", e as 4
+ * faixas de obesidade caem todas em "elevado". Num gráfico onde várias fatias
+ * aparecem lado a lado isso vira um problema de verdade: fatias de
+ * classificações diferentes ficam com a cor idêntica e o gráfico parece ter
+ * menos categorias do que realmente tem. `coresClassificacao` (config.js) dá
+ * a cada classificação a sua própria cor dentro da família certa (verde/
+ * âmbar/vermelho), mantendo o degradê de gravidade. Se uma classificação
+ * nova aparecer sem cor própria cadastrada, cai de volta para a cor do tom —
+ * mesma rede de segurança que o resto do site já usa.
+ */
+function corClassificacao(mapa, texto) {
+  if (!texto) return corTom(undefined);
+  const direta = ((NOMADES_CONFIG.coresClassificacao || {})[mapa] || {})[texto];
+  if (direta) return direta;
+  const tom = ((NOMADES_CONFIG.classificacoes || {})[mapa] || {})[texto];
+  return corTom(tom);
+}
+
+/** Faixas de cor da frequência: 80%+ verde, 60-79% amarelo, abaixo vermelho. */
+function tomFrequencia(pct) {
+  if (pct === null) return "flat";
+  if (pct >= 0.8) return "good";
+  if (pct >= 0.6) return "warn";
+  return "bad";
+}
+
+/** "#rrggbb" -> "rgba(r,g,b,alpha)". Usado para preencher a área sob as
+ *  linhas dos gráficos de evolução com um degradê suave da cor da métrica. */
+function corComAlpha(hex, alpha) {
+  const h = String(hex || "").replace("#", "").trim();
+  if (h.length !== 6) return hex;
+  const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+/** Fábrica de um preenchimento em degradê vertical para usar como
+ *  `backgroundColor` de um dataset de linha do Chart.js (precisa ser uma
+ *  função porque a área do gráfico só existe depois do primeiro desenho). */
+function gradienteFillFabrica(corHex, alphaTopo, alphaBase) {
+  return function (contexto) {
+    const { ctx, chartArea } = contexto.chart;
+    if (!chartArea) return null;
+    const g = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+    g.addColorStop(0, corComAlpha(corHex, alphaTopo == null ? 0.24 : alphaTopo));
+    g.addColorStop(1, corComAlpha(corHex, alphaBase == null ? 0.02 : alphaBase));
+    return g;
+  };
+}
+
+/** Ajustes visuais do Chart.js pra combinar com a identidade da Nômades —
+ *  chamar uma vez, no início de cada página, depois que a biblioteca (
+ *  js/vendor/chart.umd.min.js) já carregou. */
+function configurarChartDefaults() {
+  if (typeof Chart === "undefined") return;
+  const fontCorpo = "'Source Sans 3', 'Segoe UI', Arial, sans-serif";
+  const fontTitulo = "'Oswald', 'Arial Narrow', sans-serif";
+  Chart.defaults.font.family = fontCorpo;
+  Chart.defaults.font.size = 13;
+  Chart.defaults.color = corCss("--ink-soft", "#5a4b40");
+  Chart.defaults.borderColor = corCss("--line", "#e3d9cb");
+  Chart.defaults.plugins.tooltip.backgroundColor = "rgba(18, 11, 8, 0.94)";
+  Chart.defaults.plugins.tooltip.titleColor = "#f5f0e8";
+  Chart.defaults.plugins.tooltip.bodyColor = "#f5f0e8";
+  Chart.defaults.plugins.tooltip.titleFont = { family: fontTitulo, weight: "600", size: 13 };
+  Chart.defaults.plugins.tooltip.bodyFont = { family: fontCorpo, size: 13 };
+  Chart.defaults.plugins.tooltip.padding = 10;
+  Chart.defaults.plugins.tooltip.cornerRadius = 8;
+  Chart.defaults.plugins.tooltip.displayColors = false;
+}
+
 /** Só os alunos marcados como ativos (ou sem a coluna Ativo preenchida) e com nome. */
 function alunosAtivos(alunos) {
   return alunos
@@ -150,8 +234,9 @@ function badgeClassificacao(m, linha) {
   if (!m.classifChave) return "";
   const texto = (linha[m.classifChave] || "").trim();
   if (!texto) return "";
-  const tom = (NOMADES_CONFIG.classificacoes[m.classifMapa] || {})[texto] || "";
-  return ` <span class="badge ${tom}">${escapeHtml(texto)}</span>`;
+  const cor = corClassificacao(m.classifMapa, texto);
+  const estilo = `background:color-mix(in srgb, ${cor} 16%, #fff); color:${cor};`;
+  return ` <span class="badge" style="${estilo}">${escapeHtml(texto)}</span>`;
 }
 
 /**

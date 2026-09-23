@@ -9,7 +9,9 @@
   "use strict";
 
   const state = { alunos: [], frequencia: [], bioimpedancia: [], rankingCompleto: [] };
-  let chartFreqTurma = null, chartImcDist = null, chartVisceralDist = null, chartEvolucao = null;
+  let chartFreqTurma = null, chartFreqDist = null, chartImcDist = null, chartVisceralDist = null, chartEvolucao = null;
+
+  configurarChartDefaults();
 
   const el = (id) => document.getElementById(id);
 
@@ -27,13 +29,6 @@
     });
     const linkSair = el("link-sair-professor");
     if (linkSair) linkSair.style.display = nome === "dashboard" ? "" : "none";
-  }
-
-  function corTom(tom) {
-    if (tom === "good") return corCss("--good", "#2f6b46");
-    if (tom === "warn") return corCss("--warn", "#93601a");
-    if (tom === "bad") return corCss("--bad", "#a53324");
-    return corCss("--ink-soft", "#5a4b40");
   }
 
   /* ---------------- Carregamento de dados ---------------- */
@@ -93,7 +88,7 @@
     return total > 0 ? presencas / total : null;
   }
 
-  function renderizarKpis(nomesAtivos, ultimaPorAluno, contagemMedicoes) {
+  function renderizarKpis(nomesAtivos, ultimaPorAluno, contagemFreq) {
     el("kpi-alunos").textContent = nomesAtivos.length;
 
     const pctTurma = frequenciaGeralTurma(nomesAtivos);
@@ -105,8 +100,11 @@
     const imcMedio = imcs.length ? imcs.reduce((a, b) => a + b, 0) / imcs.length : null;
     el("kpi-imc").textContent = imcMedio !== null ? imcMedio.toFixed(1) : "—";
 
-    const aguardando = nomesAtivos.filter((n) => (contagemMedicoes[n] || 0) === 1).length;
-    el("kpi-aguardando").textContent = aguardando;
+    const emAtencao = contagemFreq.bad || 0;
+    const kpiAtencao = el("kpi-atencao");
+    kpiAtencao.textContent = emAtencao;
+    kpiAtencao.classList.remove("tom-good", "tom-bad");
+    kpiAtencao.classList.add(emAtencao > 0 ? "tom-bad" : "tom-good");
   }
 
   /* ---------------- Frequência da turma (gráfico por mês) ---------------- */
@@ -154,6 +152,42 @@
         },
       },
     });
+  }
+
+  /* ---------------- Distribuição de frequência (quantos alunos em cada faixa) ---------------- */
+
+  function contagemFrequenciaPorFaixa(nomesAtivos) {
+    const contagem = { good: 0, warn: 0, bad: 0 };
+    nomesAtivos.forEach((nome) => {
+      const { pct } = resumoFrequenciaAluno(state.frequencia, nome);
+      if (pct === null) return;
+      contagem[tomFrequencia(pct)] += 1;
+    });
+    return contagem;
+  }
+
+  function distribuicaoFrequencia(contagem) {
+    const faixas = [
+      ["good", "80% ou mais"],
+      ["warn", "60% a 79%"],
+      ["bad", "Abaixo de 60%"],
+    ].filter(([tom]) => contagem[tom] > 0);
+
+    return {
+      labels: faixas.map(([, label]) => label),
+      valores: faixas.map(([tom]) => contagem[tom]),
+      cores: faixas.map(([tom]) => corTom(tom)),
+    };
+  }
+
+  function renderizarDistribuicaoFrequencia(contagem) {
+    const bloco = el("freq-dist-bloco");
+    if (!bloco) return;
+    const dist = distribuicaoFrequencia(contagem);
+    if (!dist.labels.length) { bloco.style.display = "none"; return; }
+    bloco.style.display = "";
+    chartFreqDist = renderizarDonut("chart-freq-dist", dist, chartFreqDist);
+    renderizarLegenda("legenda-freq-dist", dist);
   }
 
   /* ---------------- Ranking de frequência por aluno ---------------- */
@@ -216,7 +250,7 @@
     });
     const labels = Object.keys(contagem);
     const valores = labels.map((l) => contagem[l]);
-    const cores = labels.map((l) => corTom((NOMADES_CONFIG.classificacoes[mapaTom] || {})[l] || ""));
+    const cores = labels.map((l) => corClassificacao(mapaTom, l));
     return { labels, valores, cores };
   }
 
@@ -224,12 +258,34 @@
     if (chartRefAtual) chartRefAtual.destroy();
     return new Chart(el(canvasId).getContext("2d"), {
       type: "doughnut",
-      data: { labels: dist.labels, datasets: [{ data: dist.valores, backgroundColor: dist.cores, borderWidth: 0 }] },
+      data: {
+        labels: dist.labels,
+        datasets: [{
+          data: dist.valores,
+          backgroundColor: dist.cores,
+          borderColor: corCss("--paper-2", "#fff"),
+          borderWidth: 2,
+          borderRadius: 3,
+          spacing: 2,
+          hoverOffset: 6,
+        }],
+      },
       options: {
         cutout: "62%",
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (c) => {
+                const total = c.dataset.data.reduce((a, b) => a + b, 0);
+                const pct = total ? Math.round((c.parsed / total) * 100) : 0;
+                return `${c.label}: ${c.parsed} (${pct}%)`;
+              },
+            },
+          },
+        },
       },
     });
   }
@@ -271,15 +327,23 @@
           label: "Peso médio (kg)",
           data: grupos.map((g) => g.pesos.length ? (g.pesos.reduce((a, b) => a + b, 0) / g.pesos.length) : null),
           borderColor: corMaroon,
-          backgroundColor: corMaroon,
+          backgroundColor: gradienteFillFabrica(corMaroon),
+          fill: true,
           tension: 0.3,
           pointRadius: 4,
+          pointBackgroundColor: corMaroon,
+          pointBorderColor: corCss("--paper-2", "#fff"),
+          pointBorderWidth: 2,
+          pointHoverRadius: 6,
         }],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (c) => "Peso médio: " + c.parsed.y.toFixed(1) + " kg" } },
+        },
         scales: { y: { title: { display: true, text: "kg" } } },
       },
     });
@@ -321,11 +385,12 @@
     el("dash-atualizado").textContent = "Consulta em " + new Date().toLocaleDateString("pt-BR");
 
     const nomesAtivos = alunosAtivos(state.alunos).map((a) => a["Nome Completo"].trim());
-    const contagemMedicoes = contarMedicoesPorAluno(state.bioimpedancia);
+    const contagemFreq = contagemFrequenciaPorFaixa(nomesAtivos);
 
     const { ultimaPorAluno } = renderizarBioimpedanciaTurma(nomesAtivos);
-    renderizarKpis(nomesAtivos, ultimaPorAluno, contagemMedicoes);
+    renderizarKpis(nomesAtivos, ultimaPorAluno, contagemFreq);
     renderizarFrequenciaTurma(nomesAtivos);
+    renderizarDistribuicaoFrequencia(contagemFreq);
     montarRanking(nomesAtivos);
   }
 

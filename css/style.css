@@ -35,6 +35,7 @@
 
   --radius: 14px;
   --shadow: 0 6px 20px rgba(18, 11, 8, 0.12);
+  --shadow-lg: 0 14px 32px rgba(18, 11, 8, 0.18);
 }
 
 * { box-sizing: border-box; }
@@ -116,15 +117,15 @@ input:focus-visible {
   color: #fff;
   box-shadow: 0 10px 24px rgba(107, 20, 20, 0.35);
 }
-.btn-primary:hover { transform: translateY(-1px); }
-.btn-primary:active { transform: translateY(0); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(107, 20, 20, 0.44); }
+.btn-primary:active { transform: translateY(0); box-shadow: 0 8px 18px rgba(107, 20, 20, 0.32); }
 
 .btn-ghost {
   background: transparent;
   color: var(--paper);
   border: 2px solid rgba(245, 240, 232, 0.5);
 }
-.btn-ghost:hover { border-color: #fff; }
+.btn-ghost:hover { border-color: #fff; background: rgba(255, 255, 255, 0.06); }
 
 .btn-block { width: 100%; }
 .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
@@ -143,6 +144,37 @@ input:focus-visible {
   background:
     radial-gradient(120% 90% at 50% 12%, var(--brand-maroon-deep) 0%, var(--brand-black) 62%);
   color: var(--paper);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Numeral gigante ao fundo do hero — igual ao número gravado numa anilha de
+   peso, remete direto ao "60" do nome do projeto sem competir com o texto. */
+.hero__numeral {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: min(74vw, 620px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(245, 240, 232, 0.09);
+  user-select: none;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero__mark,
+.hero__word,
+.hero__tagline,
+.hero__cta,
+.hero__note,
+.hero__link {
+  position: relative;
+  z-index: 1;
 }
 
 .hero__mark {
@@ -177,6 +209,17 @@ input:focus-visible {
   max-width: 320px;
 }
 
+.hero__link {
+  display: inline-block;
+  margin-top: 28px;
+  color: rgba(245, 240, 232, 0.5);
+  font-size: 0.82rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.15s ease;
+}
+.hero__link:hover { color: rgba(245, 240, 232, 0.85); }
+
 /* ---------- Cabeçalho interno (aluno.html) ---------- */
 .topbar {
   display: flex;
@@ -190,6 +233,7 @@ input:focus-visible {
   position: sticky;
   top: 0;
   z-index: 10;
+  box-shadow: 0 4px 16px rgba(18, 11, 8, 0.28);
 }
 
 .topbar__brand {
@@ -228,6 +272,22 @@ input:focus-visible {
   margin: 0 auto;
   padding: 24px 18px calc(48px + env(safe-area-inset-bottom, 0px));
 }
+
+/* Área do Professor ganha mais respiro em telas largas, com espaço pra um
+   layout em colunas (ver .pro-columns) em vez de uma coluna única e estreita
+   esticada no meio de uma tela de computador. */
+@media (min-width: 900px) {
+  .page--wide { max-width: 1180px; }
+}
+
+/* Um único instante de entrada pro painel inteiro quando os dados terminam
+   de carregar — não uma animação repetida por cartão. Desativado junto com
+   o resto em prefers-reduced-motion (regra lá em cima). */
+@keyframes settleIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+#secao-dashboard { animation: settleIn 0.45s ease-out both; }
 
 /* ---------- Cartão de login ---------- */
 .login-card {
@@ -510,7 +570,8 @@ input:focus-visible {
   margin-bottom: 14px;
 }
 
-/* Comparação com a turma */
+/* Linha simples "rótulo à esquerda, valor à direita" — usada no cartão de
+   única avaliação (ainda não há o que comparar). */
 .turma-row {
   display: flex;
   justify-content: space-between;
@@ -522,6 +583,50 @@ input:focus-visible {
 .turma-row:last-child { border-bottom: none; }
 .turma-row__label { color: var(--ink-soft); }
 .turma-row__value { font-weight: 700; text-align: right; }
+
+/* Comparação com a turma: duas barrinhas por métrica (você / turma) — sem
+   julgar se "acima da média" é bom ou ruim (isso depende da métrica e de
+   quem mais está na turma), só ajuda a visualizar a diferença de um jeito
+   mais rápido de ler do que uma lista de números. */
+.turma-compare__row { margin-bottom: 18px; }
+.turma-compare__row:last-child { margin-bottom: 0; }
+.turma-compare__label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 7px;
+}
+.turma-compare__line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+.turma-compare__line:last-child { margin-bottom: 0; }
+.turma-compare__tag {
+  width: 46px;
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+.turma-compare__barwrap {
+  flex: 1;
+  background: var(--paper);
+  border-radius: 999px;
+  height: 14px;
+  overflow: hidden;
+}
+.turma-compare__bar { height: 100%; border-radius: 999px; transition: width 0.4s ease; }
+.turma-compare__bar--voce { background: var(--brand-ember); }
+.turma-compare__bar--turma { background: var(--ink-soft); opacity: 0.5; }
+.turma-compare__value {
+  width: 84px;
+  flex-shrink: 0;
+  text-align: right;
+  font-size: 0.86rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
 
 /* Idade Metabólica x Idade Real: duas barras horizontais comparando os
    dois números, coloridas conforme o resultado (verde = metabólica mais
@@ -609,18 +714,51 @@ input:focus-visible {
   padding: 16px 14px;
   text-align: center;
   box-shadow: var(--shadow);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
+.kpi-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.kpi-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  margin: 0 auto 8px;
+  color: var(--brand-ember);
+}
+.kpi-card__icon svg { width: 100%; height: 100%; }
 .kpi-card__valor {
   font-family: var(--font-display);
   font-size: 1.9rem;
   color: var(--brand-maroon);
   line-height: 1.1;
 }
+.kpi-card__valor.tom-good { color: var(--good); }
+.kpi-card__valor.tom-warn { color: var(--warn); }
+.kpi-card__valor.tom-bad { color: var(--bad); }
 .kpi-card__label {
   font-size: 0.82rem;
   color: var(--ink-soft);
   margin-top: 4px;
 }
+
+/* Ranking + Bioimpedância lado a lado em telas largas (ver .page--wide) */
+.pro-columns { display: block; }
+@media (min-width: 900px) {
+  .pro-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+    gap: 20px;
+  }
+  .pro-columns .card { height: 100%; }
+}
+
+/* Donut solo de distribuição de frequência, dentro do card "Frequência da
+   turma" — reaproveita .chart-wrap e .donut-legend já usados nos donuts de
+   bioimpedância, só centralizado e um pouco menor por ser uma figura única. */
+.freq-dist { max-width: 240px; margin: 0 auto; text-align: center; }
+.freq-dist .chart-wrap { height: 160px; }
 
 /* Dois donuts lado a lado (distribuição de IMC / gordura visceral) */
 .donut-pair {

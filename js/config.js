@@ -58,6 +58,35 @@ const NOMADES_CONFIG = {
   // direção da faixa ideal pra decidir a cor. Se adicionar uma
   // classificação nova acima, adicione a ordem dela aqui também (mesmo
   // texto, mesmo mapa "imc"/"visceral").
+  // Cor própria de cada classificação (usada nos gráficos donut da Área do
+  // Professor e nos pontos do gráfico de evolução) — resolve um problema
+  // visual real: como o IMC tem 7 classificações mas só 3 tons (bom/atenção/
+  // elevado), "Baixo Peso" e "Sobrepeso" ficavam com a MESMA cor no gráfico
+  // (os dois são "atenção"), e as 4 faixas de obesidade também ficavam todas
+  // idênticas (todas "elevado") — impossível distinguir as fatias do donut.
+  // Aqui cada classificação ganha seu próprio tom dentro da família certa,
+  // formando um degradê de gravidade: verde (ideal) → dourado (abaixo do
+  // peso) → âmbar (sobrepeso) → laranja → vermelho → vermelho mais escuro,
+  // terminando no marrom mais profundo da marca (obesidade grau III). Se
+  // você criar uma classificação nova e não adicionar uma cor aqui, ela usa
+  // a cor do tom (igual sempre funcionou) até você cadastrar uma cor própria.
+  coresClassificacao: {
+    imc: {
+      "Peso Adequado": "#2f6b46",
+      "Baixo Peso": "#b6841e",
+      "Sobrepeso": "#93601a",
+      "Obesidade": "#ad5324",
+      "Obesidade Grau I": "#a53324",
+      "Obesidade Grau II": "#872318",
+      "Obesidade Grau III": "#5c150d"
+    },
+    visceral: {
+      "Saudável/Normal": "#2f6b46",
+      "Elevado": "#93601a",
+      "Muito Elevado": "#a53324"
+    }
+  },
+
   classificacoesOrdem: {
     imc: {
       "Peso Adequado": 0,

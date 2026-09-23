@@ -14,6 +14,8 @@
   };
   let chartDonut = null, chartTrend = null, chartBio = null;
 
+  configurarChartDefaults();
+
   const el = (id) => document.getElementById(id);
 
   const secoes = {
@@ -128,14 +130,6 @@
 
   /* ---------------- Dashboard: Frequência ---------------- */
 
-  /* Faixas de cor usadas na frequência: 80%+ verde, 60-79% amarelo, abaixo vermelho. */
-  function tomFrequencia(pct) {
-    if (pct === null) return "flat";
-    if (pct >= 0.8) return "good";
-    if (pct >= 0.6) return "warn";
-    return "bad";
-  }
-
   function renderizarFrequencia(nome) {
     const resumo = resumoFrequenciaAluno(state.frequencia, nome);
     const linhas = resumo.linhas;
@@ -168,25 +162,38 @@
       type: "doughnut",
       data: {
         labels: ["Presenças", "Faltas"],
-        datasets: [{ data: [resumo.presencas, resumo.faltas], backgroundColor: [corMaroon, corLinha], borderWidth: 0 }],
+        datasets: [{
+          data: [resumo.presencas, resumo.faltas],
+          backgroundColor: [corMaroon, corLinha],
+          borderColor: corCss("--paper-2", "#fff"),
+          borderWidth: 2,
+          borderRadius: 3,
+          spacing: 2,
+          hoverOffset: 6,
+        }],
       },
       options: {
         cutout: "68%",
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { enabled: true } },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (c) => {
+                const total = c.dataset.data.reduce((a, b) => a + b, 0);
+                const pct = total ? Math.round((c.parsed / total) * 100) : 0;
+                return `${c.label}: ${c.parsed} (${pct}%)`;
+              },
+            },
+          },
+        },
       },
     });
 
     el("freq-legenda").innerHTML =
       `<span><i style="background:${corMaroon}"></i>Presenças (${resumo.presencas})</span>` +
       `<span><i style="background:${corLinha}"></i>Faltas (${resumo.faltas})</span>`;
-
-    const corTomFreq = (tom) => {
-      if (tom === "good") return corCss("--good", "#2f6b46");
-      if (tom === "warn") return corCss("--warn", "#93601a");
-      return corCss("--bad", "#a53324");
-    };
 
     if (chartTrend) chartTrend.destroy();
     chartTrend = new Chart(el("chart-trend").getContext("2d"), {
@@ -196,7 +203,7 @@
         datasets: [{
           label: "% Presença",
           data: linhas.map((l) => Math.round((paraFracao(l["% Presença"]) || 0) * 100)),
-          backgroundColor: linhas.map((l) => corTomFreq(tomFrequencia(paraFracao(l["% Presença"])))),
+          backgroundColor: linhas.map((l) => corTom(tomFrequencia(paraFracao(l["% Presença"])))),
           borderRadius: 6,
           maxBarThickness: 34,
         }],
@@ -253,11 +260,8 @@
     if (m.sentido !== "classificacao") return null;
     return linhas.map((l) => {
       const texto = (l[m.ordemChave] || "").trim();
-      const tom = (NOMADES_CONFIG.classificacoes[m.ordemMapa] || {})[texto];
-      if (tom === "good") return corCss("--good", "#2f6b46");
-      if (tom === "warn") return corCss("--warn", "#93601a");
-      if (tom === "bad") return corCss("--bad", "#a53324");
-      return corCss(m.corVar, "#6b1414");
+      if (!texto) return corCss(m.corVar, "#6b1414");
+      return corClassificacao(m.ordemMapa, texto);
     });
   }
 
@@ -294,9 +298,11 @@
           label: m.label,
           data: dados,
           borderColor: corBase,
-          backgroundColor: corBase,
+          backgroundColor: gradienteFillFabrica(corBase),
+          fill: true,
           pointBackgroundColor: coresPontos || corBase,
-          pointBorderColor: coresPontos || corBase,
+          pointBorderColor: corCss("--paper-2", "#fff"),
+          pointBorderWidth: 2,
           pointRadius: 5,
           pointHoverRadius: 7,
           spanGaps: true,
@@ -465,9 +471,26 @@
       const mediaVal = media(l.chave, l.fracao);
       const meuVal = l.fracao ? paraFracao(meu[l.chave]) : paraNumero(meu[l.chave]);
       if (mediaVal === null || meuVal === null) return "";
-      return `<div class="turma-row">
-        <span class="turma-row__label">${l.label} — você / média da turma</span>
-        <span class="turma-row__value">${formatarValor(l, meuVal)} / ${formatarValor(l, mediaVal)}</span>
+
+      // Escala própria por métrica (não dá pra comparar kg com % na mesma
+      // régua) — igual ao mesmo raciocínio já usado no card de Idade Metabólica.
+      const maior = Math.max(meuVal, mediaVal);
+      const escala = maior > 0 ? maior * 1.15 : 1;
+      const pctMeu = Math.min(100, (meuVal / escala) * 100);
+      const pctMedia = Math.min(100, (mediaVal / escala) * 100);
+
+      return `<div class="turma-compare__row">
+        <div class="turma-compare__label">${l.label}</div>
+        <div class="turma-compare__line">
+          <span class="turma-compare__tag">Você</span>
+          <div class="turma-compare__barwrap"><div class="turma-compare__bar turma-compare__bar--voce" style="width:${pctMeu}%"></div></div>
+          <span class="turma-compare__value">${formatarValor(l, meuVal)}</span>
+        </div>
+        <div class="turma-compare__line">
+          <span class="turma-compare__tag">Turma</span>
+          <div class="turma-compare__barwrap"><div class="turma-compare__bar turma-compare__bar--turma" style="width:${pctMedia}%"></div></div>
+          <span class="turma-compare__value">${formatarValor(l, mediaVal)}</span>
+        </div>
       </div>`;
     }).join("");
   }

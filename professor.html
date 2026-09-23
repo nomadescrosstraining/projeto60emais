@@ -18,7 +18,7 @@
     <a class="topbar__link" id="link-sair-professor" href="#" style="display:none">Sair</a>
   </header>
 
-  <div class="page">
+  <div class="page page--wide">
 
     <!-- Carregando -->
     <section id="secao-carregando" class="state-message">
@@ -64,20 +64,32 @@
 
       <div class="kpi-grid">
         <div class="kpi-card">
+          <span class="kpi-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 5 18.5V20"/><circle cx="9.5" cy="8" r="3.2"/><path d="M15.5 14.2a3.2 3.2 0 1 0-1.4-6.1"/><path d="M19.5 20v-1.3a3 3 0 0 0-2-2.83"/></svg>
+          </span>
           <div class="kpi-card__valor" id="kpi-alunos">—</div>
           <div class="kpi-card__label">Alunos ativos</div>
         </div>
         <div class="kpi-card">
+          <span class="kpi-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="16" rx="2.2"/><path d="M3.5 9.5h17"/><path d="M8 3v3M16 3v3"/><path d="M7.5 14l2.6 2.6L16.5 11"/></svg>
+          </span>
           <div class="kpi-card__valor" id="kpi-frequencia">—</div>
           <div class="kpi-card__label">Frequência média</div>
         </div>
         <div class="kpi-card">
+          <span class="kpi-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16.5a8 8 0 0 1 16 0"/><path d="M12 16.5 15.2 10"/><circle cx="12" cy="16.5" r="1.15" fill="currentColor" stroke="none"/><path d="M4 16.5h.01M20 16.5h.01M12 6.5h.01"/></svg>
+          </span>
           <div class="kpi-card__valor" id="kpi-imc">—</div>
           <div class="kpi-card__label">IMC médio</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-card__valor" id="kpi-aguardando">—</div>
-          <div class="kpi-card__label">Aguardando 2ª avaliação</div>
+          <span class="kpi-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2 2 20.5h20L12 3.2Z"/><path d="M12 9.8v4.6"/><path d="M12 17.6h.01"/></svg>
+          </span>
+          <div class="kpi-card__valor" id="kpi-atencao">—</div>
+          <div class="kpi-card__label">Baixa frequência</div>
         </div>
       </div>
 
@@ -88,52 +100,62 @@
         <div class="chart-wrap trend">
           <canvas id="chart-freq-turma" aria-label="Evolução da frequência da turma por mês" role="img"></canvas>
         </div>
-      </div>
 
-      <!-- Ranking de frequência -->
-      <div class="card card--frequencia">
-        <h2>Frequência por aluno</h2>
-        <p class="card__subtitle">Do menor para o maior percentual — ajuda a ver quem precisa de um incentivo</p>
-        <input type="search" id="busca-aluno" class="search-input" placeholder="Buscar aluno pelo nome…">
-        <div class="rank-table-wrap">
-          <table class="rank-table">
-            <thead>
-              <tr><th>Aluno</th><th class="num">Presenças</th><th class="num">Faltas</th><th class="num">%</th></tr>
-            </thead>
-            <tbody id="rank-tbody"></tbody>
-          </table>
+        <div id="freq-dist-bloco" style="display:none; margin-top:22px; padding-top:20px; border-top:1px solid var(--line);">
+          <p class="card__subtitle" style="margin-bottom:10px;">Quantos alunos estão em cada faixa de frequência hoje</p>
+          <div class="freq-dist">
+            <div class="chart-wrap"><canvas id="chart-freq-dist" aria-label="Distribuição dos alunos por faixa de frequência" role="img"></canvas></div>
+            <div class="donut-legend" id="legenda-freq-dist"></div>
+          </div>
         </div>
       </div>
 
-      <!-- Bioimpedância da turma -->
-      <div class="card card--bio">
-        <h2>Bioimpedância da turma</h2>
-        <p class="card__subtitle">Médias e distribuição da última avaliação de cada aluno</p>
-
-        <div id="bio-turma-vazio" class="state-message" style="display:none; padding:10px 0;">
-          Ainda não há avaliações de bioimpedância registradas.
+      <div class="pro-columns">
+        <!-- Ranking de frequência -->
+        <div class="card card--frequencia">
+          <h2>Frequência por aluno</h2>
+          <p class="card__subtitle">Do menor para o maior percentual — ajuda a ver quem precisa de um incentivo</p>
+          <input type="search" id="busca-aluno" class="search-input" placeholder="Buscar aluno pelo nome…">
+          <div class="rank-table-wrap">
+            <table class="rank-table">
+              <thead>
+                <tr><th>Aluno</th><th class="num">Presenças</th><th class="num">Faltas</th><th class="num">%</th></tr>
+              </thead>
+              <tbody id="rank-tbody"></tbody>
+            </table>
+          </div>
         </div>
 
-        <div id="bio-turma-conteudo">
-          <div id="medias-turma-conteudo" style="margin-bottom:20px;"></div>
+        <!-- Bioimpedância da turma -->
+        <div class="card card--bio">
+          <h2>Bioimpedância da turma</h2>
+          <p class="card__subtitle">Médias e distribuição da última avaliação de cada aluno</p>
 
-          <div class="donut-pair" style="margin-bottom:10px;">
-            <figure>
-              <div class="chart-wrap"><canvas id="chart-imc-dist" aria-label="Distribuição de classificação de IMC" role="img"></canvas></div>
-              <figcaption>Classificação de IMC</figcaption>
-              <div class="donut-legend" id="legenda-imc"></div>
-            </figure>
-            <figure>
-              <div class="chart-wrap"><canvas id="chart-visceral-dist" aria-label="Distribuição de gordura visceral" role="img"></canvas></div>
-              <figcaption>Gordura visceral</figcaption>
-              <div class="donut-legend" id="legenda-visceral"></div>
-            </figure>
+          <div id="bio-turma-vazio" class="state-message" style="display:none; padding:10px 0;">
+            Ainda não há avaliações de bioimpedância registradas.
           </div>
 
-          <div id="bio-evolucao-bloco" style="display:none; margin-top:20px;">
-            <p class="card__subtitle" style="margin-bottom:8px;">Evolução do peso médio da turma por rodada de avaliação</p>
-            <div class="chart-wrap trend">
-              <canvas id="chart-evolucao-turma" aria-label="Evolução do peso médio da turma" role="img"></canvas>
+          <div id="bio-turma-conteudo">
+            <div id="medias-turma-conteudo" style="margin-bottom:20px;"></div>
+
+            <div class="donut-pair" style="margin-bottom:10px;">
+              <figure>
+                <div class="chart-wrap"><canvas id="chart-imc-dist" aria-label="Distribuição de classificação de IMC" role="img"></canvas></div>
+                <figcaption>Classificação de IMC</figcaption>
+                <div class="donut-legend" id="legenda-imc"></div>
+              </figure>
+              <figure>
+                <div class="chart-wrap"><canvas id="chart-visceral-dist" aria-label="Distribuição de gordura visceral" role="img"></canvas></div>
+                <figcaption>Gordura visceral</figcaption>
+                <div class="donut-legend" id="legenda-visceral"></div>
+              </figure>
+            </div>
+
+            <div id="bio-evolucao-bloco" style="display:none; margin-top:20px;">
+              <p class="card__subtitle" style="margin-bottom:8px;">Evolução do peso médio da turma por rodada de avaliação</p>
+              <div class="chart-wrap trend">
+                <canvas id="chart-evolucao-turma" aria-label="Evolução do peso médio da turma" role="img"></canvas>
+              </div>
             </div>
           </div>
         </div>
